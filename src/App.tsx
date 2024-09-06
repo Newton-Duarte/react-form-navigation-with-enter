@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
+import styles from './App.module.css';
 
 interface FormValues {
   firstName: string;
@@ -9,6 +10,7 @@ interface FormValues {
 }
 
 export const App: React.FC = () => {
+  const [data, setData] = useState<FormValues | null>(null)
   const {
     register,
     handleSubmit,
@@ -41,6 +43,7 @@ export const App: React.FC = () => {
 
   const onSubmit: SubmitHandler<FormValues> = (data) => {
     console.log("Form submitted:", data);
+    setData(data)
   };
 
   const handleKeyDown = async (
@@ -48,11 +51,11 @@ export const App: React.FC = () => {
     index: number,
     fieldName: keyof FormValues
   ): Promise<void> => {
+    // Explicitly set the value before triggering validation
+    setValue(fieldName, (e.target as HTMLInputElement).value);
+
     if (e.key === "Enter") {
       e.preventDefault();
-
-      // Explicitly set the value before triggering validation
-      setValue(fieldName, (e.target as HTMLInputElement).value);
 
       // Trigger validation for the current field
       const isValid = await trigger(fieldName);
@@ -69,55 +72,72 @@ export const App: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleFormSubmit}>
-      <input
-        {...register("firstName", { required: "First name is required" })}
-        ref={(el) => (inputRefs.current[0] = el)}
-        onKeyDown={(e) => handleKeyDown(e, 0, "firstName")}
-        placeholder="First Name"
-      />
-      {errors.firstName && <p>{errors.firstName.message}</p>}
+    <main className={styles.main}>
+      <form className={styles.form} onSubmit={handleFormSubmit}>
+        <div className={styles.formControl}>
+          <input
+            {...register("firstName", { required: "First name is required" })}
+            ref={(el) => (inputRefs.current[0] = el)}
+            onKeyDown={(e) => handleKeyDown(e, 0, "firstName")}
+            placeholder="First Name"
+          />
+          {errors.firstName && <p>{errors.firstName.message}</p>}
+        </div>
 
-      <input
-        {...register("lastName", { required: "Last name is required" })}
-        ref={(el) => (inputRefs.current[1] = el)}
-        onKeyDown={(e) => handleKeyDown(e, 1, "lastName")}
-        placeholder="Last Name"
-      />
-      {errors.lastName && <p>{errors.lastName.message}</p>}
+        <div className={styles.formControl}>
+          <input
+            {...register("lastName", { required: "Last name is required" })}
+            ref={(el) => (inputRefs.current[1] = el)}
+            onKeyDown={(e) => handleKeyDown(e, 1, "lastName")}
+            placeholder="Last Name"
+          />
+          {errors.lastName && <p>{errors.lastName.message}</p>}
+        </div>
 
-      <select
-        {...register("gender", { required: "Gender is required" })}
-        ref={(el) => (inputRefs.current[2] = el)}
-        onKeyDown={(e) => handleKeyDown(e, 2, "gender")}
-      >
-        <option value="">Select gender</option>
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-      </select>
-      {errors.gender && <p>{errors.gender.message}</p>}
+        <div className={styles.formControl}>
+          <select
+            {...register("gender", { required: "Gender is required" })}
+            ref={(el) => (inputRefs.current[2] = el)}
+            onKeyDown={(e) => handleKeyDown(e, 2, "gender")}
+          >
+            <option value="">Select gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+          {errors.gender && <p>{errors.gender.message}</p>}
+        </div>
 
-      <input
-        {...register("age", { required: "Age is required", valueAsNumber: true })}
-        ref={(el) => (inputRefs.current[3] = el)}
-        onKeyDown={(e) => handleKeyDown(e, 3, "age")}
-        placeholder="Age"
-        type="number"
-      />
-      {errors.age && <p>{errors.age.message}</p>}
+        <div className={styles.formControl}>
+          <input
+            {...register("age", { required: "Age is required", valueAsNumber: true })}
+            ref={(el) => (inputRefs.current[3] = el)}
+            onKeyDown={(e) => handleKeyDown(e, 3, "age")}
+            placeholder="Age"
+            type="number"
+          />
+          {errors.age && <p>{errors.age.message}</p>}
+        </div>
 
-      <button
-        type="submit"
-        ref={submitButtonRef}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            handleSubmit(onSubmit)(); // Programmatically submit the form
-          }
-        }}
-      >
-        Submit
-      </button>
-    </form>
+        <button
+          type="submit"
+          ref={submitButtonRef}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSubmit(onSubmit)(); // Programmatically submit the form
+            }
+          }}
+        >
+          Submit
+        </button>
+      </form>
+      {data && (
+        <div className={styles.data}>
+          {Object.keys(data).map((key) => (
+            <p key={key}>{key}: <span>{data[key as keyof FormValues]}</span></p>
+          ))}
+        </div>
+      )}
+    </main>
   );
 }
